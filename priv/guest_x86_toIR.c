@@ -256,6 +256,7 @@ static IRSB* irsb;
 
 #define OFFB_FPREGS    offsetof(VexGuestX86State,guest_FPREG[0])
 #define OFFB_FPTAGS    offsetof(VexGuestX86State,guest_FPTAG[0])
+#define OFFB_IFLAG     offsetof(VexGuestX86State,guest_IFLAG)
 #define OFFB_DFLAG     offsetof(VexGuestX86State,guest_DFLAG)
 #define OFFB_IDFLAG    offsetof(VexGuestX86State,guest_IDFLAG)
 #define OFFB_ACFLAG    offsetof(VexGuestX86State,guest_ACFLAG)
@@ -7716,6 +7717,18 @@ void set_EFLAGS_from_value ( IRTemp t1,
       elimination of previous stores to this field work better. */
    stmt( IRStmt_Put( OFFB_CC_NDEP, mkU32(0) ));
 
+   /* Set the Interrupt flag (IF) */
+   stmt( IRStmt_Put(
+	       OFFB_IFLAG,
+	       IRExpr_ITE( 
+		   unop(Iop_32to1,
+		       binop(Iop_And32,
+			   binop(Iop_Shr32, mkexpr(t1), mkU8(9)), 
+			   mkU32(1))),
+		   mkU32(1),
+		   mkU32(0)))
+       );
+
    /* Also need to set the D flag, which is held in bit 10 of t1.
       If zero, put 1 in OFFB_DFLAG, else -1 in OFFB_DFLAG. */
    stmt( IRStmt_Put( 
@@ -14153,6 +14166,16 @@ DisResult disInstr_X86_WRK (
                               mkU32(1<<18)))
             );
 
+      /* And patch in the Interrupt flag (IF). */
+      t6 = newTemp(Ity_I32);
+      assign( t6, binop(Iop_Or32,
+                        mkexpr(t5),
+                        binop(Iop_And32,
+                              binop(Iop_Shl32, IRExpr_Get(OFFB_IFLAG,Ity_I32), 
+                                               mkU8(9)),
+                              mkU32(1<<9)))
+            );
+
       /* if sz==2, the stored value needs to be narrowed. */
       if (sz == 2)
         storeLE( mkexpr(t1), unop(Iop_32to16,mkexpr(t6)) );
@@ -14248,9 +14271,11 @@ DisResult disInstr_X86_WRK (
       break;
    /* Some basic kernel instructions, treat like NOPs */
    case 0xFA: /* CLI */
+      stmt( IRStmt_Put( OFFB_IFLAG, mkU32(0)) );
       DIP("cli\n");
       break;
    case 0xFB: /* STI */
+      stmt( IRStmt_Put( OFFB_IFLAG, mkU32(1)) );
       DIP("sti\n");
       break;
 

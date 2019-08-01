@@ -725,6 +725,8 @@ UInt LibVEX_GuestX86_get_eflags ( /*IN*/const VexGuestX86State* vex_state )
    vassert(dflag == 1 || dflag == 0xFFFFFFFF);
    if (dflag == 0xFFFFFFFF)
       eflags |= X86G_CC_MASK_D;
+   if (vex_state->guest_IFLAG == 1)
+      eflags |= X86G_CC_MASK_I;
    if (vex_state->guest_IDFLAG == 1)
       eflags |= X86G_CC_MASK_ID;
    if (vex_state->guest_ACFLAG == 1)
@@ -745,6 +747,14 @@ LibVEX_GuestX86_put_eflags ( UInt eflags,
    }
    else
       vex_state->guest_DFLAG = 1;
+
+   /* Interrupt flag (IF) */
+   if (eflags & X86G_CC_MASK_I) {
+      vex_state->guest_IFLAG = 1;
+      eflags &= ~X86G_CC_MASK_I;
+   }
+   else
+      vex_state->guest_IFLAG = 0;
 
    /* ID flag */
    if (eflags & X86G_CC_MASK_ID) {
@@ -2835,6 +2845,7 @@ void LibVEX_GuestX86_initialise ( /*OUT*/VexGuestX86State* vex_state )
    vex_state->guest_CC_DEP1 = 0;
    vex_state->guest_CC_DEP2 = 0;
    vex_state->guest_CC_NDEP = 0;
+   vex_state->guest_IFLAG  = 0;
    vex_state->guest_DFLAG   = 1; /* forwards */
    vex_state->guest_IDFLAG  = 0;
    vex_state->guest_ACFLAG  = 0;
@@ -2878,7 +2889,7 @@ void LibVEX_GuestX86_initialise ( /*OUT*/VexGuestX86State* vex_state )
    vex_state->guest_SC_CLASS = 0;
    vex_state->guest_IP_AT_SYSCALL = 0;
 
-   vex_state->padding1 = 0;
+   //vex_state->padding1 = 0;
 }
 
 
@@ -2959,28 +2970,29 @@ VexGuestLayout
           .alwaysDefd 
              = { /*  0 */ ALWAYSDEFD(guest_CC_OP),
                  /*  1 */ ALWAYSDEFD(guest_CC_NDEP),
-                 /*  2 */ ALWAYSDEFD(guest_DFLAG),
-                 /*  3 */ ALWAYSDEFD(guest_IDFLAG),
-                 /*  4 */ ALWAYSDEFD(guest_ACFLAG),
-                 /*  5 */ ALWAYSDEFD(guest_EIP),
-                 /*  6 */ ALWAYSDEFD(guest_FTOP),
-                 /*  7 */ ALWAYSDEFD(guest_FPTAG),
-                 /*  8 */ ALWAYSDEFD(guest_FPROUND),
-                 /*  9 */ ALWAYSDEFD(guest_FC3210),
-                 /* 10 */ ALWAYSDEFD(guest_CS),
-                 /* 11 */ ALWAYSDEFD(guest_DS),
-                 /* 12 */ ALWAYSDEFD(guest_ES),
-                 /* 13 */ ALWAYSDEFD(guest_FS),
-                 /* 14 */ ALWAYSDEFD(guest_GS),
-                 /* 15 */ ALWAYSDEFD(guest_SS),
-                 /* 16 */ ALWAYSDEFD(guest_LDT),
-                 /* 17 */ ALWAYSDEFD(guest_GDT),
-                 /* 18 */ ALWAYSDEFD(guest_EMNOTE),
-                 /* 19 */ ALWAYSDEFD(guest_SSEROUND),
-                 /* 20 */ ALWAYSDEFD(guest_CMSTART),
-                 /* 21 */ ALWAYSDEFD(guest_CMLEN),
-                 /* 22 */ ALWAYSDEFD(guest_SC_CLASS),
-                 /* 23 */ ALWAYSDEFD(guest_IP_AT_SYSCALL)
+                 /*  2 */ ALWAYSDEFD(guest_IFLAG),
+                 /*  3 */ ALWAYSDEFD(guest_DFLAG),
+                 /*  4 */ ALWAYSDEFD(guest_IDFLAG),
+                 /*  5 */ ALWAYSDEFD(guest_ACFLAG),
+                 /*  6 */ ALWAYSDEFD(guest_EIP),
+                 /*  7 */ ALWAYSDEFD(guest_FTOP),
+                 /*  8 */ ALWAYSDEFD(guest_FPTAG),
+                 /*  9 */ ALWAYSDEFD(guest_FPROUND),
+                 /* 10 */ ALWAYSDEFD(guest_FC3210),
+                 /* 11 */ ALWAYSDEFD(guest_CS),
+                 /* 12 */ ALWAYSDEFD(guest_DS),
+                 /* 13 */ ALWAYSDEFD(guest_ES),
+                 /* 14 */ ALWAYSDEFD(guest_FS),
+                 /* 15 */ ALWAYSDEFD(guest_GS),
+                 /* 16 */ ALWAYSDEFD(guest_SS),
+                 /* 17 */ ALWAYSDEFD(guest_LDT),
+                 /* 18 */ ALWAYSDEFD(guest_GDT),
+                 /* 19 */ ALWAYSDEFD(guest_EMNOTE),
+                 /* 20 */ ALWAYSDEFD(guest_SSEROUND),
+                 /* 21 */ ALWAYSDEFD(guest_CMSTART),
+                 /* 22 */ ALWAYSDEFD(guest_CMLEN),
+                 /* 23 */ ALWAYSDEFD(guest_SC_CLASS),
+                 /* 24 */ ALWAYSDEFD(guest_IP_AT_SYSCALL)
                }
         };
 

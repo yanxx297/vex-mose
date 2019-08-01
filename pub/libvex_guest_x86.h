@@ -158,26 +158,28 @@ typedef
       UInt  guest_CC_DEP1;
       UInt  guest_CC_DEP2;
       UInt  guest_CC_NDEP;     /* 52 */
+      /* Bit 9 (IF) of eflags stored here, as either 0 or 1. */
+      UInt  guest_IFLAG;	/* 56 */
       /* The D flag is stored here, encoded as either -1 or +1 */
-      UInt  guest_DFLAG;       /* 56 */
+      UInt  guest_DFLAG;       /* 60 */
       /* Bit 21 (ID) of eflags stored here, as either 0 or 1. */
-      UInt  guest_IDFLAG;      /* 60 */
+      UInt  guest_IDFLAG;      /* 64 */
       /* Bit 18 (AC) of eflags stored here, as either 0 or 1. */
-      UInt  guest_ACFLAG;      /* 64 */
+      UInt  guest_ACFLAG;      /* 68 */
 
       /* EIP */
-      UInt  guest_EIP;         /* 68 */
+      UInt  guest_EIP;         /* 72 */
 
       /* FPU */
-      ULong guest_FPREG[8];    /* 72 */
-      UChar guest_FPTAG[8];   /* 136 */
-      UInt  guest_FPROUND;    /* 144 */
-      UInt  guest_FC3210;     /* 148 */
-      UInt  guest_FTOP;       /* 152 */
+      ULong guest_FPREG[8];    /* 76 */
+      UChar guest_FPTAG[8];   /* 142 */
+      UInt  guest_FPROUND;    /* 150 */
+      UInt  guest_FC3210;     /* 154 */
+      UInt  guest_FTOP;       /* 156 */
 
       /* SSE */
-      UInt  guest_SSEROUND;   /* 156 */
-      U128  guest_XMM0;       /* 160 */
+      UInt  guest_SSEROUND;   /* 160 */
+      U128  guest_XMM0;       /* 164 */
       U128  guest_XMM1;
       U128  guest_XMM2;
       U128  guest_XMM3;
@@ -222,7 +224,7 @@ typedef
       UInt guest_IP_AT_SYSCALL;
 
       /* Padding to make it have an 16-aligned size */
-      UInt padding1;
+      //UInt padding1;
    }
    VexGuestX86State;
 
