@@ -1,1 +1,5 @@
 .svn
+*.o
+*.a
+*.swp
+pub/libvex_guest_offsets.h
